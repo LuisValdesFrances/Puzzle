@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Puzzle</string>
+    <string name="sound">SONIDO</string>
+    <string name="fps">FPS</string>
+    <string name="debug">DEBUG</string>
+    <string name="pause">PAUSA</string>
+    <string name="select_picture">SELECIONE IMAGEN</string>
+    <string name="select_dificult">SELECIONE DIFICULTAD</string>
+    <string name="completed">COMPLETADO</string>
+    <string name="puzzle">PUZZLE</string>
+    <string name="movements">MOVIMIENTOS</string>
+    <string name="time">TIEMPO</string>
+</resources>
