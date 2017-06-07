@@ -37,15 +37,15 @@ public class Button {
     public void update(Screen screen){
         switch(state){
             case STATE_IDLE:
-                if(screen.getTouchEvent().isTouchDown()){
-                    if(isToching(screen.getTouchEvent().getX(), screen.getTouchEvent().getY())){
+                if(screen.isTouchDown()){
+                    if(isToching(screen.getTouchX(), screen.getTouchY())){
                         state = STATE_HOVER;
                     }
                 }
                 break;
             case STATE_HOVER:
-                if(isToching(screen.getTouchEvent().getX(), screen.getTouchEvent().getY())) {
-                    if (screen.getTouchEvent().isTouchUp()) {
+                if(isToching(screen.getTouchX(), screen.getTouchY())) {
+                    if (screen.isTouchUp()) {
                         state = STATE_IDLE;
                         callback();
                         return;

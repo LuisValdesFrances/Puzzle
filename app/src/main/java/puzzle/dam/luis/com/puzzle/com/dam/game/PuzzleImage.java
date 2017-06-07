@@ -70,23 +70,23 @@ public class PuzzleImage {
 
         switch(state){
             case STATE_IDLE:
-                if(screen.getTouchEvent().isTouchDown()) {
+                if(screen.isTouchDown() || screen.isTouchDrag()) {
                     cPiece =
                             getPiece(screen,
-                                    screen.getTouchEvent().getX(),
-                                    screen.getTouchEvent().getY());
+                                    screen.getTouchX(),
+                                    screen.getTouchY());
                     if (cPiece != null && isLegal(cPiece) != -1) {
                         //changePositions(p, getPieceFromId(-1));
                         initX = cPiece.getX();
                         initY = cPiece.getY();
-                        touchOffsetX =  (int)screen.getTouchEvent().getX() - cPiece.getX();
-                        touchOffsetY =  (int)screen.getTouchEvent().getY() - cPiece.getY();
+                        touchOffsetX =  (int)screen.getTouchX() - cPiece.getX();
+                        touchOffsetY =  (int)screen.getTouchY() - cPiece.getY();
                         state = STATE_MOVE;
                     }
                 }
                 break;
             case STATE_MOVE:
-                if(screen.getTouchEvent().isTouchUp()){
+                if(screen.isTouchUp()){
                     //La piezas se recolocan si se ha movido lo suficiente
                     if (isLegal(cPiece) == RIGHT || isLegal(cPiece) == LEFT) {
                         if(Math.abs(cPiece.getX()-getPieceFromId(-1).getX()) < cPiece.getWidth()/2){
@@ -102,6 +102,7 @@ public class PuzzleImage {
                         if(Math.abs(cPiece.getY()-getPieceFromId(-1).getY()) < cPiece.getHeight()/2){
                             targetXY = getPieceFromId(-1).getY();
                             next = true;
+                            movements++;
                         }else{
                             targetXY = initY;
                             next = false;
@@ -109,27 +110,27 @@ public class PuzzleImage {
                     }
                     state = STATE_TARGET;
                 }else {
-                    if (screen.getTouchEvent().isTouching()) {
+                    if (screen.isTouching()) {
                         //Limito el movimiento
                         if (isLegal(cPiece) == RIGHT) {
                             cPiece.setX(getCompress(
                                     initX,
                                     getPieceFromId(-1).getX(),
-                                    (int) screen.getTouchEvent().getX() - touchOffsetX
+                                    (int) screen.getTouchX() - touchOffsetX
                             ));
                         }
                         else if (isLegal(cPiece) == LEFT) {
                             cPiece.setX(getCompress(
                                     getPieceFromId(-1).getX(),
                                     initX,
-                                    (int) screen.getTouchEvent().getX() - touchOffsetX
+                                    (int) screen.getTouchX() - touchOffsetX
                             ));
                         }
                         else if (isLegal(cPiece) == DOWN) {
                             cPiece.setY(getCompress(
                                     initY,
                                     getPieceFromId(-1).getY(),
-                                    (int) screen.getTouchEvent().getY() - touchOffsetY
+                                    (int) screen.getTouchY() - touchOffsetY
                             ));
                         }
                         else if (isLegal(cPiece) == UP) {
@@ -137,7 +138,7 @@ public class PuzzleImage {
                             cPiece.setY(getCompress(
                                     getPieceFromId(-1).getY(),
                                     initY,
-                                    (int) screen.getTouchEvent().getY() - touchOffsetY
+                                    (int) screen.getTouchY() - touchOffsetY
                             ));
                         }
                     }

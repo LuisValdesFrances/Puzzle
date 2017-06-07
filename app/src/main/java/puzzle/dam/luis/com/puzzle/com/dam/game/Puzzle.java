@@ -505,15 +505,15 @@ public class Puzzle extends Screen implements Runnable{
             canvas.drawText("PFS: " + framesXSecond + "/" + fps, 0, textPaint.getTextSize() * 2, textPaint);
             canvas.drawText("Delta: " + delta, WORLD_WIDTH * 0.5f, textPaint.getTextSize() * 2, textPaint);
             //Cordenadas de inputs
-            canvas.drawText("sX: " + (int) (getTouchEvent().getX() * getScaleX()), 0, textPaint.getTextSize() * 3, textPaint);
-            canvas.drawText("sY: " + (int) (getTouchEvent().getY() * getScaleY()), WORLD_WIDTH * 0.2f, textPaint.getTextSize() * 3, textPaint);
-            canvas.drawText("wX: " + (int) getTouchEvent().getX(), WORLD_WIDTH * 0.5f, textPaint.getTextSize() * 3, textPaint);
-            canvas.drawText("wY: " + (int) getTouchEvent().getY(), WORLD_WIDTH * 0.7f, textPaint.getTextSize() * 3, textPaint);
+            canvas.drawText("sX: " + (int) (getTouchX() * getScaleX()), 0, textPaint.getTextSize() * 3, textPaint);
+            canvas.drawText("sY: " + (int) (getTouchY() * getScaleY()), WORLD_WIDTH * 0.2f, textPaint.getTextSize() * 3, textPaint);
+            canvas.drawText("wX: " + (int) getTouchX(), WORLD_WIDTH * 0.5f, textPaint.getTextSize() * 3, textPaint);
+            canvas.drawText("wY: " + (int) getTouchY(), WORLD_WIDTH * 0.7f, textPaint.getTextSize() * 3, textPaint);
             //Estados de inputs
-            canvas.drawText("Touching: " + getTouchEvent().isTouching(), 0, textPaint.getTextSize() * 4, textPaint);
-            canvas.drawText("EventDown: " + getTouchEvent().isTouchDown(), 0, textPaint.getTextSize() * 5, textPaint);
-            canvas.drawText("EventDrag: " + getTouchEvent().isTouchDrag(), 0, textPaint.getTextSize() * 6, textPaint);
-            canvas.drawText("EventUp: " + getTouchEvent().isTouchUp(), 0, textPaint.getTextSize() * 7, textPaint);
+            canvas.drawText("Touching: " + isTouching(), 0, textPaint.getTextSize() * 4, textPaint);
+            canvas.drawText("EventDown: " + isTouchDown(), 0, textPaint.getTextSize() * 5, textPaint);
+            canvas.drawText("EventDrag: " + isTouchDrag(), 0, textPaint.getTextSize() * 6, textPaint);
+            canvas.drawText("EventUp: " + isTouchUp(), 0, textPaint.getTextSize() * 7, textPaint);
         }
     }
 

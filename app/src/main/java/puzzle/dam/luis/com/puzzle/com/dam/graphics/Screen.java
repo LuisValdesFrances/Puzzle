@@ -1,21 +1,16 @@
 package puzzle.dam.luis.com.puzzle.com.dam.graphics;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.ActionBar;
 import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.WindowManager;
-import puzzle.dam.luis.com.puzzle.com.dam.event.TouchEvent;
 
 /**
  * Created by Luis on 30/04/2017.
@@ -35,8 +30,6 @@ public abstract class Screen extends SurfaceView {
     private Rect dstRect;
     private Bitmap buffer;
     private Canvas bufferCanvas;
-
-    private TouchEvent touchEvent;
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR2)
     public Screen(Activity context, int worldWidth, int worldHeight) {
@@ -64,8 +57,6 @@ public abstract class Screen extends SurfaceView {
         scaleY = screenHeight / worldHeight;
 
         setLayoutParams(new ActionBar.LayoutParams((int)screenWidth, (int)screenHeight));
-
-        touchEvent = new TouchEvent(this);
     }
 
     /*
@@ -145,13 +136,65 @@ public abstract class Screen extends SurfaceView {
         this.worldHeight = worldHeight;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        touchEvent.onTouch(this, event);
-        return true;
+
+    private float x;
+    private float y;
+
+    private boolean isTouching;
+    private boolean isTouchDown;
+    private boolean isTouchUp;
+    private boolean isTouchDrag;
+
+    public int getTouchX() {
+        return (int)(x/getScaleX());
     }
 
-    public TouchEvent getTouchEvent() {
-        return touchEvent;
+    public int getTouchY() {
+        return (int)(y/getScaleY());
+    }
+
+    public boolean isTouching() {
+        return isTouching;
+    }
+
+    public boolean isTouchDown() {
+        return isTouchDown;
+    }
+
+    public boolean isTouchUp() {
+        return isTouchUp;
+    }
+
+    public boolean isTouchDrag() {
+        return isTouchDrag;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        switch (motionEvent.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                isTouchDown = true;
+                isTouchUp = false;
+                isTouching = true;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                isTouchUp = false;
+                isTouchDown = false;
+                isTouchDrag = true;
+                isTouching = true;
+                break;
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                isTouchUp = true;
+                isTouchDown = false;
+                isTouchDrag = false;
+                isTouching = false;
+                break;
+            default:
+                break;
+        }
+        x = motionEvent.getX();
+        y = motionEvent.getY();
+        return true;
     }
 }
