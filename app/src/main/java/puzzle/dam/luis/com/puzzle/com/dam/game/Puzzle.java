@@ -1,15 +1,14 @@
 package puzzle.dam.luis.com.puzzle.com.dam.game;
 
-import android.app.Activity;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.text.TextPaint;
 
+import puzzle.dam.luis.com.puzzle.MainActivity;
 import puzzle.dam.luis.com.puzzle.R;
 import puzzle.dam.luis.com.puzzle.com.dam.graphics.Font;
 import puzzle.dam.luis.com.puzzle.com.dam.graphics.Image;
@@ -26,7 +25,7 @@ public class Puzzle extends Screen implements Runnable{
     public static final int WORLD_WIDTH = 480;
     public static final int WORLD_HEIGHT = 800;
 
-    private Activity context;
+    private MainActivity mainActivity;
     private SoundManager soundManager;
 
     private boolean debug=false;
@@ -71,14 +70,14 @@ public class Puzzle extends Screen implements Runnable{
 
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public Puzzle(Activity context) {
-        super(context, WORLD_WIDTH, WORLD_HEIGHT);
-        this.context = context;
-        soundManager = new SoundManager(context);
+    public Puzzle(MainActivity activity) {
+        super(activity, WORLD_WIDTH, WORLD_HEIGHT);
+        this.mainActivity = activity;
+        soundManager = new SoundManager(activity);
         soundManager.loadFX();
         //Cargo la fuente
-        font = new Font(context, "drawable/UncialAntiqua-Regular.ttf", Color.RED, Color.WHITE, 56f, getWorldMidle()*0.004f);
-        fontSmall = new Font(context, "drawable/UncialAntiqua-Regular.ttf", Color.RED, Color.WHITE, 28f, getWorldMidle()*0.002f);
+        font = new Font(activity, "drawable/UncialAntiqua-Regular.ttf", Color.RED, Color.WHITE, 56f, getWorldMidle()*0.004f);
+        fontSmall = new Font(activity, "drawable/UncialAntiqua-Regular.ttf", Color.RED, Color.WHITE, 28f, getWorldMidle()*0.002f);
         lastGameState = -1;
         changeState(STATE_MAIN);
     }
@@ -101,14 +100,15 @@ public class Puzzle extends Screen implements Runnable{
     protected void initState(){
         switch(gameState) {
             case STATE_MAIN:
+                mainActivity.loadInterstitial();
                 //Carga de imagenes
-                Image imgBack = new Image(context, "drawable/button_back.png");
-                Image imgPlayIdle = new Image(context, "drawable/button_play.png");
-                Image imgPlayHover = new Image(context, "drawable/button_play_h.png");
-                Image imgOptIdle = new Image(context, "drawable/button_options.png");
+                Image imgBack = new Image(mainActivity, "drawable/button_back.png");
+                Image imgPlayIdle = new Image(mainActivity, "drawable/button_play.png");
+                Image imgPlayHover = new Image(mainActivity, "drawable/button_play_h.png");
+                Image imgOptIdle = new Image(mainActivity, "drawable/button_options.png");
 
                 //instacia de objetos persistentes en todo el juego
-                bgMenu = new Image(context, "drawable/bg.png");
+                bgMenu = new Image(mainActivity, "drawable/bg.png");
                 backButton = new Button(
                         getWorldMidle()/64,
                         WORLD_HEIGHT - imgBack.getHeight() - getWorldMidle()/64,
@@ -140,12 +140,12 @@ public class Puzzle extends Screen implements Runnable{
                 break;
             case STATE_OPTIONS:
 
-                Image imgOn = new Image(context, "drawable/button_on.png");
-                Image imgOnHover = new Image(context, "drawable/button_on_h.png");
-                Image imgOff = new Image(context, "drawable/button_off.png");
-                Image imgOffHover = new Image(context, "drawable/button_off_h.png");
-                Image imgPlus = new Image(context, "drawable/button_plus.png");
-                Image imgRest = new Image(context, "drawable/button_rest.png");
+                Image imgOn = new Image(mainActivity, "drawable/button_on.png");
+                Image imgOnHover = new Image(mainActivity, "drawable/button_on_h.png");
+                Image imgOff = new Image(mainActivity, "drawable/button_off.png");
+                Image imgOffHover = new Image(mainActivity, "drawable/button_off_h.png");
+                Image imgPlus = new Image(mainActivity, "drawable/button_plus.png");
+                Image imgRest = new Image(mainActivity, "drawable/button_rest.png");
 
                 int optHeight = imgOn.getHeight();
 
@@ -219,9 +219,9 @@ public class Puzzle extends Screen implements Runnable{
                 };
                 break;
             case STATE_SELECT_PICTURE:
-                Image img1 = new Image(context, "drawable/min1.png");
-                Image img2 = new Image(context, "drawable/min2.png");
-                Image img3 = new Image(context, "drawable/min3.png");
+                Image img1 = new Image(mainActivity, "drawable/min1.png");
+                Image img2 = new Image(mainActivity, "drawable/min2.png");
+                Image img3 = new Image(mainActivity, "drawable/min3.png");
                 img1Button = new Button(
                         WORLD_WIDTH/2 - img1.getWidth()/2,
                         (int)(WORLD_HEIGHT * 0.25f) - img1.getHeight()/2,
@@ -254,9 +254,9 @@ public class Puzzle extends Screen implements Runnable{
                 };
                 break;
             case STATE_SELECT_DIF:
-                imgPlus = new Image(context, "drawable/button_plus.png");
-                imgRest = new Image(context, "drawable/button_rest.png");
-                Image imgNext = new Image(context, "drawable/button_next.png");
+                imgPlus = new Image(mainActivity, "drawable/button_plus.png");
+                imgRest = new Image(mainActivity, "drawable/button_rest.png");
+                Image imgNext = new Image(mainActivity, "drawable/button_next.png");
                 pieces = 3;
                 restButton = new Button(
                         WORLD_WIDTH/3 - imgRest.getWidth()/2,
@@ -289,17 +289,20 @@ public class Puzzle extends Screen implements Runnable{
                 };
                 break;
             case STATE_PLAY:
+
+                mainActivity.requestInterstitial();
+
                 //Solo instancio los objetos del juego en caso de que no se venga del menú
                 if(lastGameState != STATE_OPTIONS) {
-                    puzzleImage = new PuzzleImage(new Image(context, "drawable/"+ pictureSelect), this, soundManager, pieces);
+                    puzzleImage = new PuzzleImage(new Image(mainActivity, "drawable/"+ pictureSelect), this, soundManager, pieces);
                     seconds = 0;
                     acumDelta = 0;
                 }
                 soundManager.playMusic(SoundManager.MUSIC_PLAY, true, 0);
                 break;
             case STATE_END:
-                bgMenu = new Image(context, "drawable/"+ pictureSelect);
-                imgNext = new Image(context, "drawable/button_next.png");
+                bgMenu = new Image(mainActivity, "drawable/"+ pictureSelect);
+                imgNext = new Image(mainActivity, "drawable/button_next.png");
                 nextButton = new Button(
                         WORLD_WIDTH - imgNext.getWidth() - getWorldMidle()/64,
                         WORLD_HEIGHT - imgNext.getHeight() - getWorldMidle()/64,
@@ -350,7 +353,7 @@ public class Puzzle extends Screen implements Runnable{
                 restButton.update(this);
                 break;
             case STATE_PLAY:
-                if(!puzzleImage.checkVictory()) {
+                if (!puzzleImage.checkVictory()) {
                     optionsButton.update(this);
                     acumDelta += delta;
                     if (acumDelta >= 1f) {
@@ -358,7 +361,7 @@ public class Puzzle extends Screen implements Runnable{
                         seconds++;
                     }
                     puzzleImage.update(this, delta);
-                }else{
+                } else {
                     changeState(STATE_END);
                 }
                 break;
@@ -381,7 +384,7 @@ public class Puzzle extends Screen implements Runnable{
                 canvas.drawBitmap(bgMenu.getBitmap(), 0, 0, paint);
                 playButton.draw(canvas, paint);
                 optionsButton.draw(canvas, paint);
-                String title = context.getString(R.string.app_name);
+                String title = mainActivity.getString(R.string.app_name);
                 int m = font.getTextWidth(paint, title);
                 font.draw(canvas, paint, title,
                         0,
@@ -390,7 +393,7 @@ public class Puzzle extends Screen implements Runnable{
             case STATE_OPTIONS:
                 canvas.drawBitmap(bgMenu.getBitmap(), 0, 0, paint);
                 if(lastGameState == STATE_PLAY && (tick%(50*getFrameModificator()) < (25*getFrameModificator()))){
-                    String text = context.getString(R.string.pause);
+                    String text = mainActivity.getString(R.string.pause);
                     font.draw(canvas,paint, text, (getWorldMidle()>>6), font.getTextHeight(paint) + (getWorldMidle()>>6));
                 }
                 backButton.draw(canvas, paint);
@@ -407,17 +410,17 @@ public class Puzzle extends Screen implements Runnable{
                 plusButton.draw(canvas, paint);
                 restButton.draw(canvas, paint);
 
-                String text = context.getString(R.string.sound);
+                String text = mainActivity.getString(R.string.sound);
                 fontSmall.draw(canvas, paint, text,
                         WORLD_WIDTH/16,
                         onSoundButton.getY() + onSoundButton.getHeight()/2 + fontSmall.getTextHeight(paint)/2);
 
-                text = context.getString(R.string.debug);
+                text = mainActivity.getString(R.string.debug);
                 fontSmall.draw(canvas, paint, text,
                         WORLD_WIDTH/16,
                         onDebugButton.getY() + onDebugButton.getHeight()/2 + fontSmall.getTextHeight(paint)/2);
 
-                text = context.getString(R.string.fps);
+                text = mainActivity.getString(R.string.fps);
                 fontSmall.draw(canvas, paint, text,
                         WORLD_WIDTH/16,
                         plusButton.getY() + plusButton.getHeight()/2 + fontSmall.getTextHeight(paint)/2);
@@ -429,7 +432,7 @@ public class Puzzle extends Screen implements Runnable{
                 break;
             case STATE_SELECT_PICTURE:
                 canvas.drawBitmap(bgMenu.getBitmap(), 0, 0, paint);
-                text = context.getString(R.string.select_picture);
+                text = mainActivity.getString(R.string.select_picture);
                 fontSmall.draw(canvas,paint, text, (getWorldMidle()>>6), font.getTextHeight(paint) + (getWorldMidle()>>6));
                 backButton.draw(canvas, paint);
                 img1Button.draw(canvas, paint);
@@ -438,7 +441,7 @@ public class Puzzle extends Screen implements Runnable{
                 break;
             case STATE_SELECT_DIF:
                 canvas.drawBitmap(bgMenu.getBitmap(), 0, 0, paint);
-                text = context.getString(R.string.select_dificult);
+                text = mainActivity.getString(R.string.select_difficult);
                 fontSmall.draw(canvas,paint, text, (getWorldMidle()>>6), font.getTextHeight(paint) + (getWorldMidle()>>6));
                 backButton.draw(canvas, paint);
                 nextButton.draw(canvas, paint);
@@ -465,23 +468,23 @@ public class Puzzle extends Screen implements Runnable{
                 canvas.drawBitmap(bgMenu.getBitmap(),
                         WORLD_WIDTH/2 - bgMenu.getWidth()/2, WORLD_HEIGHT/ 2- bgMenu.getHeight()/2, paint);
                 nextButton.draw(canvas, paint);
-                text = context.getString(R.string.puzzle);
+                text = mainActivity.getString(R.string.puzzle);
                 font.draw(canvas, paint, text,
                         WORLD_WIDTH/2 - font.getTextWidth(paint, text)/2 - (int)distAnimation,
                         (int)(font.getTextHeight(paint)*1.5) + (getWorldMidle()>>8));
-                text = context.getString(R.string.completed);
+                text = mainActivity.getString(R.string.completed);
                 font.draw(canvas, paint, text,
                         WORLD_WIDTH/2 - font.getTextWidth(paint, text)/2 + (int)distAnimation,
                         (int)(font.getTextHeight(paint)*3.5) + (getWorldMidle()>>8));
 
-                fontSmall.draw(canvas, paint, context.getString(R.string.movements),
+                fontSmall.draw(canvas, paint, mainActivity.getString(R.string.movements),
                         WORLD_WIDTH/6,
                         WORLD_HEIGHT/2);
                 text = "" + puzzleImage.movements;
                 fontSmall.draw(canvas, paint, text,
                         WORLD_WIDTH - WORLD_WIDTH/6 - fontSmall.getTextWidth(paint, text),
                         WORLD_HEIGHT/2);
-                fontSmall.draw(canvas, paint, context.getString(R.string.time),
+                fontSmall.draw(canvas, paint, mainActivity.getString(R.string.time),
                         WORLD_WIDTH/6,
                         WORLD_HEIGHT/2 + (int)(fontSmall.getTextHeight(paint)*2f));
                 text = "" + seconds;

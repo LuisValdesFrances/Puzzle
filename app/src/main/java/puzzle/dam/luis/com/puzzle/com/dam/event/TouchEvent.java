@@ -1,6 +1,5 @@
 package puzzle.dam.luis.com.puzzle.com.dam.event;
 
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
