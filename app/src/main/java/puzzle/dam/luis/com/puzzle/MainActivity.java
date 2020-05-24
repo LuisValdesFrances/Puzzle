@@ -24,6 +24,7 @@ public class MainActivity extends Activity{
     private InterstitialAd mInterstitialAd;
 
     public static final String ADMOB_ID = "ca-app-pub-9871578065265688~4227977718";
+    public static final String INTERSTITIAL_ID_TEST = "ca-app-pub-3940256099942544/1033173712";
     public static final String INTERSTITIAL_ID = "ca-app-pub-9871578065265688/8690677342";
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -32,7 +33,6 @@ public class MainActivity extends Activity{
         super.onCreate(savedInstanceState);
 
         MobileAds.initialize(this, ADMOB_ID);
-
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(INTERSTITIAL_ID);
         //mInterstitialAd.loadAd(new AdRequest.Builder().build());
@@ -40,48 +40,12 @@ public class MainActivity extends Activity{
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-
-        final int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-
-        // This work only for android 4.4+
-        if(currentApiVersion >= Build.VERSION_CODES.KITKAT){
-
-            getWindow().getDecorView().setSystemUiVisibility(flags);
-
-            // Code below is to handle presses of Volume up or Volume down.
-            // Without this, after pressing volume buttons, the navigation bar will
-            // show up and won't hide
-            final View decorView = getWindow().getDecorView();
-            decorView
-                    .setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
-                    {
-                        @Override
-                        public void onSystemUiVisibilityChange(int visibility)
-                        {
-                            if((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-                            {
-                                decorView.setSystemUiVisibility(flags);
-                            }
-                        }
-                    });
-        }
-
         puzzle = new Puzzle(this);
 
         setContentView(puzzle);
 
-
         Thread gameLoop = new Thread(puzzle);
         gameLoop.start();
-
-
-
 
         mInterstitialAd.setAdListener(new AdListener() {
             @Override

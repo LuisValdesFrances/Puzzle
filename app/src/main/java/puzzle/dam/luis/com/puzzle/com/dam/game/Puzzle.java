@@ -26,6 +26,9 @@ public class Puzzle extends Screen implements Runnable{
     public static final int WORLD_HEIGHT = 800;
 
     private MainActivity mainActivity;
+    public MainActivity getMainActivity(){
+        return  mainActivity;
+    }
     private SoundManager soundManager;
 
     private boolean debug=false;
@@ -294,7 +297,7 @@ public class Puzzle extends Screen implements Runnable{
 
                 //Solo instancio los objetos del juego en caso de que no se venga del menú
                 if(lastGameState != STATE_OPTIONS) {
-                    puzzleImage = new PuzzleImage(new Image(mainActivity, "drawable/"+ pictureSelect), this, soundManager, pieces);
+                    puzzleImage = new PuzzleImage(this, new Image(mainActivity, "drawable/"+ pictureSelect), this, soundManager, pieces);
                     seconds = 0;
                     acumDelta = 0;
                 }

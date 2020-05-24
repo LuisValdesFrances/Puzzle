@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="puzzle.dam.luis.com.puzzle">
+    package="puzzle.dam.luis.com.puzzle"
+    android:installLocation="auto">
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-
-    <uses-sdk
-        android:minSdkVersion="16"
-        android:targetSdkVersion="19" />
 
     <application
         android:allowBackup="true"
@@ -25,6 +22,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9871578065265688~4227977718"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

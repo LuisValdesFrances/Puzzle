@@ -14,8 +14,9 @@ import puzzle.dam.luis.com.puzzle.com.dam.sound.SoundManager;
 
 public class PuzzleImage {
 
+    private Puzzle puzzle;
     private int pieces;
-    private Piece[][] puzzle;
+    private Piece[][] puzzleComposition;
 
     private int state;
     public static final int STATE_IDLE = 0;
@@ -34,12 +35,13 @@ public class PuzzleImage {
 
     SoundManager soundManager;
 
-    public PuzzleImage(Image image, Screen screen, SoundManager soundManager, int pieces){
+    public PuzzleImage(Puzzle puzzle, Image image, Screen screen, SoundManager soundManager, int pieces){
+        this.puzzle = puzzle;
         this.pieces = pieces;
         this.soundManager = soundManager;
         int drawOffsetX = Puzzle.WORLD_WIDTH / 2 - image.getWidth() / 2;
         int drawOffsetY = Puzzle.WORLD_HEIGHT / 2 - image.getHeight() / 2;
-        puzzle = new Piece[pieces][pieces];
+        puzzleComposition = new Piece[pieces][pieces];
         int sort = 0;
         for(int i = 0; i < pieces; i++){
             for(int j = 0; j < pieces; j++){
@@ -56,11 +58,11 @@ public class PuzzleImage {
                 Image img = new Image(bm);
                 int w = img.getWidth();
                 int h = img.getHeight();
-                puzzle[i][j] = new Piece(sort++, (w * j) + drawOffsetX, (h * i) +  drawOffsetY, img);
+                puzzleComposition[i][j] = new Piece(sort++, (w * j) + drawOffsetX, (h * i) +  drawOffsetY, img);
             }
         }
         //Establezco el hueco del puzzle;
-        puzzle[pieces-1][pieces-1].setSort(-1);
+        puzzleComposition[pieces-1][pieces-1].setSort(-1);
 
         //Hago 1000 movimientos legales
         init(1000);
@@ -92,7 +94,13 @@ public class PuzzleImage {
                         if(Math.abs(cPiece.getX()-getPieceFromId(-1).getX()) < cPiece.getWidth()/2){
                             targetXY = getPieceFromId(-1).getX();
                             next = true;
+
                             movements++;
+                            if(movements > 0 && movements%21 == 0){
+                                puzzle.getMainActivity().loadInterstitial();
+                            }else if(movements > 0 && movements%30 == 0){
+                                puzzle.getMainActivity().requestInterstitial();
+                            }
                         }else{
                             targetXY = initX;
                             next = false;
@@ -102,7 +110,14 @@ public class PuzzleImage {
                         if(Math.abs(cPiece.getY()-getPieceFromId(-1).getY()) < cPiece.getHeight()/2){
                             targetXY = getPieceFromId(-1).getY();
                             next = true;
+
                             movements++;
+                            if(movements > 0 && movements%21 == 0){
+                                puzzle.getMainActivity().loadInterstitial();
+                            }else if(movements > 0 && movements%30 == 0){
+                                puzzle.getMainActivity().requestInterstitial();
+                            }
+
                         }else{
                             targetXY = initY;
                             next = false;
@@ -195,17 +210,17 @@ public class PuzzleImage {
     public void draw(Screen screen, Canvas canvas, Paint paint){
        for(int i = 0; i < pieces; i++) {
             for (int j = 0; j < pieces; j++) {
-                if(puzzle[i][j].getSort() != -1) {
+                if(puzzleComposition[i][j].getSort() != -1) {
                     Piece p;
                     if(state == STATE_MOVE || state == STATE_TARGET){
                         //Es la pieza activa
-                        if(cPiece.getSort() == puzzle[i][j].getSort()){
+                        if(cPiece.getSort() == puzzleComposition[i][j].getSort()){
                             drawPiece(screen, canvas, paint, cPiece);
                         }else{
-                            drawPiece(screen, canvas, paint, puzzle[i][j]);
+                            drawPiece(screen, canvas, paint, puzzleComposition[i][j]);
                         }
                     }else{
-                        drawPiece(screen, canvas, paint, puzzle[i][j]);
+                        drawPiece(screen, canvas, paint, puzzleComposition[i][j]);
                     }
 
                 }
@@ -234,7 +249,7 @@ public class PuzzleImage {
     private void init(int movements){
 
         while(movements > 0){
-            Piece p = new Piece(puzzle[getRandom(0, pieces-1)][getRandom(0, pieces-1)]);
+            Piece p = new Piece(puzzleComposition[getRandom(0, pieces-1)][getRandom(0, pieces-1)]);
             if(isLegal(p)!= -1){
                 changePositions(p, getPieceFromId(-1));
                 movements--;
@@ -261,16 +276,16 @@ public class PuzzleImage {
         int matrixY = getMatrixPosition(piece)[1];
 
         //Derecha
-        if(matrixX < pieces-1 && puzzle[matrixY][matrixX+1].getSort()==-1)
+        if(matrixX < pieces-1 && puzzleComposition[matrixY][matrixX+1].getSort()==-1)
             return RIGHT;
         //Izquierda
-        if(matrixX > 0 && puzzle[matrixY][matrixX-1].getSort()==-1)
+        if(matrixX > 0 && puzzleComposition[matrixY][matrixX-1].getSort()==-1)
             return LEFT;
         //Abajo
-        if(matrixY < pieces-1 && puzzle[matrixY+1][matrixX].getSort()==-1)
+        if(matrixY < pieces-1 && puzzleComposition[matrixY+1][matrixX].getSort()==-1)
             return DOWN;
         //Ariba
-        if(matrixY > 0 && puzzle[matrixY-1][matrixX].getSort()==-1)
+        if(matrixY > 0 && puzzleComposition[matrixY-1][matrixX].getSort()==-1)
             return UP;
         return -1;
     }
@@ -279,7 +294,7 @@ public class PuzzleImage {
         int[] p = new int[2];
         for(int i = 0; i < pieces; i++) {
             for (int j = 0; j < pieces; j++) {
-                if(puzzle[i][j].getSort() == piece.getSort()){
+                if(puzzleComposition[i][j].getSort() == piece.getSort()){
                     p[0] = j;
                     p[1] = i;
                     break;
@@ -297,8 +312,8 @@ public class PuzzleImage {
     private Piece getPieceFromId(int sort){
         for(int i = 0; i < pieces; i++){
             for(int j = 0; j < pieces; j++){
-                if(puzzle[i][j].getSort() == sort){
-                    return new Piece(puzzle[i][j]);
+                if(puzzleComposition[i][j].getSort() == sort){
+                    return new Piece(puzzleComposition[i][j]);
                 }
             }
         }
@@ -313,7 +328,7 @@ public class PuzzleImage {
     private int[] getPositionMatrixFromId(int sort){
         for(int i = 0; i < pieces; i++){
             for(int j = 0; j < pieces; j++){
-                if(puzzle[i][j].getSort() == sort){
+                if(puzzleComposition[i][j].getSort() == sort){
                     return new int[]{j, i};
                 }
             }
@@ -325,7 +340,7 @@ public class PuzzleImage {
         Piece p;
         for(int i = 0; i < pieces; i++) {
             for (int j = 0; j < pieces; j++) {
-                p = puzzle[i][j];
+                p = puzzleComposition[i][j];
                 if(screenX > p.getX() && screenX < p.getX() + p.getWidth() &&
                         screenY > p.getY() && screenY < p.getY() + p.getHeight()){
                     return new Piece(p);
@@ -343,10 +358,10 @@ public class PuzzleImage {
         //Sustituyo la primera pieza
         for(int i = 0; i < pieces; i++) {
             for (int j = 0; j < pieces; j++) {
-                if(puzzle[i][j].getSort() == piece2.getSort()){
-                    piece1.setX(puzzle[i][j].getX());
-                    piece1.setY(puzzle[i][j].getY());
-                    puzzle[i][j] = piece1;
+                if(puzzleComposition[i][j].getSort() == piece2.getSort()){
+                    piece1.setX(puzzleComposition[i][j].getX());
+                    piece1.setY(puzzleComposition[i][j].getY());
+                    puzzleComposition[i][j] = piece1;
                     break;
                 }
             }
@@ -354,7 +369,7 @@ public class PuzzleImage {
         //Sustituyo la primera segunda pieza
         piece2.setX(p.getX());
         piece2.setY(p.getY());
-        puzzle[pMatrix[1]][pMatrix[0]] = piece2;
+        puzzleComposition[pMatrix[1]][pMatrix[0]] = piece2;
     }
 
     private int getCompress(int min, int max, int val){
@@ -367,7 +382,7 @@ public class PuzzleImage {
         int p = 0;
         for(int i = 0; i < pieces; i++){
             for(int j = 0; j < pieces; j++){
-                if (puzzle[i][j].getSort() != p) {
+                if (puzzleComposition[i][j].getSort() != p) {
                     break;
                 }else{
                     p++;
@@ -378,7 +393,7 @@ public class PuzzleImage {
     }
 
     private void drawPiece(Screen screen, Canvas canvas, Paint paint, Piece piece){
-        canvas.drawBitmap(piece.getImage().getBitmap(),piece.getX(), piece.getY(), paint);
+        canvas.drawBitmap(piece.getImage().getBitmap(), piece.getX(), piece.getY(), paint);
     }
 
     public class Piece{

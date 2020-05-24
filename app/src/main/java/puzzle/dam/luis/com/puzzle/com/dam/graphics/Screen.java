@@ -3,6 +3,7 @@ package puzzle.dam.luis.com.puzzle.com.dam.graphics;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -11,15 +12,16 @@ import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 /**
  * Created by Luis on 30/04/2017.
  */
 
-public abstract class Screen extends SurfaceView {
+public abstract class Screen extends SurfaceView implements SurfaceHolder.Callback {
 
-    private float screenWidth;
-    private float screenHeight;
+    private int screenWidth;
+    private int screenHeight;
     private int worldWidth;
     private int worldHeight;
 
@@ -27,37 +29,51 @@ public abstract class Screen extends SurfaceView {
     private float scaleY;
 
     private SurfaceHolder surfaceHolder;
-    private Rect dstRect;
     private Bitmap buffer;
     private Canvas bufferCanvas;
+    private DisplayMetrics displayMetrics;
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR2)
     public Screen(Activity context, int worldWidth, int worldHeight) {
         super(context);
-        this.surfaceHolder = getHolder();
-        this.buffer = Bitmap.createBitmap(worldWidth, worldHeight, Bitmap.Config.RGB_565);
-        this.bufferCanvas = new Canvas(buffer);
-        this.dstRect = new Rect();
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
+        this.buffer = Bitmap.createBitmap(worldWidth, worldHeight, Bitmap.Config.RGB_565);
+        this.bufferCanvas = new Canvas(buffer);
 
-        DisplayMetrics dm = new DisplayMetrics();
-        //A partir de KITKAT es posible remover la barra de menu. Uso reflexión para saber si la clase contiene el metodo 'getRealMetrics'
-        try {
-            android.view.Display.class.getMethod("getRealMetrics", DisplayMetrics.class).invoke(context.getWindowManager().getDefaultDisplay(), dm);
+        this.hideSystemUI(context);
 
-        } catch (Exception e) {
-            context.getWindowManager().getDefaultDisplay().getMetrics(dm);
-        }
+        this.screenWidth = this.displayMetrics.widthPixels;
+        this.screenHeight = this.displayMetrics.heightPixels;
 
-        screenWidth = dm.widthPixels;
-        screenHeight = dm.heightPixels;
+        this.scaleX = (float)worldWidth  / (float)this.screenWidth;
+        this.scaleY = (float)worldHeight / (float)this.screenHeight;
 
-        scaleX = screenWidth / worldWidth;
-        scaleY = screenHeight / worldHeight;
+        SurfaceHolder holder = getHolder();
+        holder.addCallback(this);
 
-        setLayoutParams(new ActionBar.LayoutParams((int)screenWidth, (int)screenHeight));
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+
+        setLayoutParams(new ActionBar.LayoutParams(screenWidth, screenHeight));
     }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        this.surfaceHolder = holder;
+        try{
+            this.surfaceHolder.setFixedSize(this.screenWidth, this.screenHeight);
+            //Mejora la calidad de los colores. Probarlo con cuidado.
+            this.surfaceHolder.setFormat(PixelFormat.RGBA_8888);
+        }
+        catch (IllegalArgumentException e) {}
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {}
 
     /*
     @Override
@@ -70,11 +86,13 @@ public abstract class Screen extends SurfaceView {
     */
     ///*
     protected void draw(){
-        if(surfaceHolder.getSurface().isValid()){
+
+        if(surfaceHolder != null && surfaceHolder.getSurface().isValid()){
             try {
                 //gestureEvent.cancel();
                 Canvas canvas = surfaceHolder.lockCanvas();
-                //Construye un rect del tamaño del surfaceView
+                //Construye un rect del tamanyo del surfaceView
+                Rect dstRect = new Rect();
                 canvas.getClipBounds(dstRect);
                 //Todas las llamadas a paint pintan sobre el bufferCanvas asociado a la bufferImagen
                 renderGame(bufferCanvas);
@@ -99,6 +117,50 @@ public abstract class Screen extends SurfaceView {
     }
 
     protected abstract void renderGame(Canvas canvas);
+
+    private void hideSystemUI(Activity activity){
+        //Hide systemUI
+        int androidApiVersion = android.os.Build.VERSION.SDK_INT;
+        final int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+        // This work only for android 4.4+
+        if (androidApiVersion >= Build.VERSION_CODES.KITKAT) {
+
+            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
+
+            // Code below is to handle presses of Volume up or Volume down.
+            // Without this, after pressing volume buttons, the navigation bar will
+            // show up and won't hide
+            final View decorView = activity.getWindow().getDecorView();
+            decorView
+                    .setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+                        @Override
+                        public void onSystemUiVisibilityChange(int visibility) {
+                            if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
+                                decorView.setSystemUiVisibility(flags);
+                            }
+                        }
+                    });
+        }
+
+        this.displayMetrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(this.displayMetrics);
+
+
+        //A partir de KITKAT es posible remover la barra de menu. Uso reflexion para saber si la clase contiene el metodo 'getRealMetrics'
+        if (androidApiVersion < Build.VERSION_CODES.O) {
+            try {
+                android.view.Display.class.getMethod("getRealMetrics", DisplayMetrics.class).invoke(activity.getWindowManager().getDefaultDisplay(), this.displayMetrics);
+            } catch (Exception e) {
+                activity.getWindowManager().getDefaultDisplay().getMetrics(this.displayMetrics);
+            }
+        }
+    }
 
     public float getScreenWidth() {
         return screenWidth;
@@ -146,11 +208,11 @@ public abstract class Screen extends SurfaceView {
     private boolean isTouchDrag;
 
     public int getTouchX() {
-        return (int)(x/getScaleX());
+        return (int)(x * getScaleX());
     }
 
     public int getTouchY() {
-        return (int)(y/getScaleY());
+        return (int)(y * getScaleY());
     }
 
     public boolean isTouching() {
